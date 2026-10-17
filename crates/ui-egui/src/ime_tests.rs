@@ -44,8 +44,13 @@ fn composing(u: &Ui) -> Option<String> {
 
 #[test]
 fn pinyin_composes_inline_and_commits_once_with_the_ime_on_every_frame() {
+    // The text is measured with a font: without craft-fonts a system one, scanned here rather than
+    // by whichever test happens to run first (#333).
+    figcraft_text::scan_system_fonts();
     let mut s = Session::new();
     let t = NodeId(s.execute("text.create", &json!({"text": "Hi", "x": 40, "y": 40})).unwrap()["id"].as_u64().unwrap());
+    // On a machine without any font nothing lays out and every caret sits at the start.
+    let fonts = figcraft_text::layout_node(s.doc().unwrap().node(t).unwrap()).is_some_and(|(l, _)| !l.glyphs.is_empty());
     let mut u = Ui::new(s);
     figcraft_engine::textedit::begin(&mut u.app.session, t, Some(2), false).unwrap();
     // An idle frame (the caret blinking) keeps the IME on, or macOS drops the composition.
@@ -59,7 +64,7 @@ fn pinyin_composes_inline_and_commits_once_with_the_ime_on_every_frame() {
     ime(&mut u, vec![enabled, preedit("n")]);
     ime(&mut u, vec![]);
     let mid = ime(&mut u, vec![preedit("ni")]);
-    assert!(mid.min.x > caret.min.x, "the IME cursor follows the composition");
+    assert!(!fonts || mid.min.x > caret.min.x, "the IME cursor follows the composition");
     // A key the platform leaks while composing (Backspace) belongs to the IME, not the text.
     ime(&mut u, vec![key(Key::Backspace, true), preedit("nih"), key(Key::Backspace, false)]);
     ime(&mut u, vec![preedit("nihao")]);
@@ -72,7 +77,7 @@ fn pinyin_composes_inline_and_commits_once_with_the_ime_on_every_frame() {
     assert_eq!(composing(&u), None);
     let te = u.app.session.ds().unwrap().text_edit.clone().unwrap();
     assert_eq!((te.caret, te.anchor), (4, 4));
-    assert!(after.min.x > caret.min.x, "the caret moved past the committed text");
+    assert!(!fonts || after.min.x > caret.min.x, "the caret moved past the committed text");
     ime(&mut u, vec![]);
     assert_eq!(text(&u, t), "Hi你好", "committed once");
 
