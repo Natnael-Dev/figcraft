@@ -36,3 +36,10 @@ Command:
 rustup run stable-x86_64-pc-windows-gnu cargo fmt --check
 ```
 Exit code: 0 (clean).
+
+### 3. Review Feedback Resolution
+In response to automated review (CodeRabbit):
+- Added rustdoc to `fn draw` in `crates/ui-egui/src/icons.rs`.
+- Strengthened `slice_icon_paints_clear_silhouette` test to inspect `out.shapes`:
+  - Asserts exact primitive count of 3 (`1` crop frame rectangle + `2` crop tick mark line segments).
+  - Verifies that the previous box-and-diagonal design (which had only 2 shapes) fails this test.
