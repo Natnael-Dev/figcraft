@@ -420,6 +420,7 @@ pub fn paint(painter: &Painter, rect: Rect, icon: Icon, color: Color32) {
     draw(&p, icon);
 }
 
+/// Draw the primitives of `icon` on the pixel grid using `p`.
 fn draw(p: &P, icon: Icon) {
     use Icon::*;
     match icon {
@@ -1184,6 +1185,9 @@ mod tests {
         assert!(triangulate(&arrow[..2]).is_empty());
     }
 
+    /// Assert that the Slice icon renders the expected 3-primitive silhouette
+    /// (1 crop frame rectangle + 2 crop tick line segments), ensuring the old
+    /// box-with-diagonal design fails.
     #[test]
     fn slice_icon_paints_clear_silhouette() {
         let ctx = egui::Context::default();
@@ -1191,6 +1195,17 @@ mod tests {
             paint(ui.painter(), Rect::from_min_size(Pos2::ZERO, Vec2::splat(16.0)), Icon::Slice, Color32::WHITE);
         });
         out.textures_delta.clear();
-        assert!(!out.shapes.is_empty());
+        assert_eq!(out.shapes.len(), 3, "Slice icon should produce exactly 3 shapes: 1 frame rect and 2 crop tick marks");
+        let mut rect_count = 0;
+        let mut line_count = 0;
+        for c in &out.shapes {
+            match &c.shape {
+                Shape::Rect(_) => rect_count += 1,
+                Shape::LineSegment { .. } => line_count += 1,
+                _ => {}
+            }
+        }
+        assert_eq!(rect_count, 1, "Expected 1 crop frame rectangle");
+        assert_eq!(line_count, 2, "Expected 2 crop tick line segments");
     }
 }
