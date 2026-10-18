@@ -455,8 +455,10 @@ fn draw(p: &P, icon: Icon) {
             p.fill_rect(2.0, 2.0, 9.0, 6.0, 1.0);
         }
         Slice => {
-            p.rect(2.5, 2.5, 13.5, 13.5, 0.0);
-            p.line(2.5, 13.5, 13.5, 2.5);
+            // A crop/slice frame with extending crop marks.
+            p.rect(4.5, 4.5, 12.5, 12.5, 0.0);
+            p.line(2.0, 4.5, 4.5, 4.5);
+            p.line(12.5, 13.5, 15.0, 13.5);
         }
         Bend => {
             // A curve with a smooth point and its handle line.
@@ -1180,5 +1182,15 @@ mod tests {
         let rev: Vec<Pos2> = arrow.iter().rev().copied().collect();
         assert_eq!(triangulate(&rev).len(), (arrow.len() - 2) * 3);
         assert!(triangulate(&arrow[..2]).is_empty());
+    }
+
+    #[test]
+    fn slice_icon_paints_clear_silhouette() {
+        let ctx = egui::Context::default();
+        let mut out = ctx.run_ui(egui::RawInput::default(), |ui| {
+            paint(ui.painter(), Rect::from_min_size(Pos2::ZERO, Vec2::splat(16.0)), Icon::Slice, Color32::WHITE);
+        });
+        out.textures_delta.clear();
+        assert!(!out.shapes.is_empty());
     }
 }
