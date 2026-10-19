@@ -83,3 +83,13 @@ fn unavailable_system_theme_uses_the_existing_light_fallback() {
     frame(&ctx, &mut app, None);
     assert_eq!(Tokens::get(&ctx), Tokens::light());
 }
+
+#[test]
+fn light_theme_menus_follow_light_palette() {
+    let light = Tokens::light();
+    assert!(!light.dark);
+    assert_eq!(light.menu, egui::Color32::from_rgb(0xFF, 0xFF, 0xFF));
+    assert_eq!(light.menu_text, egui::Color32::from_rgb(0x1E, 0x1E, 0x1E));
+    assert_ne!(light.menu, Tokens::dark().menu);
+    assert_ne!(light.menu_text, Tokens::dark().menu_text);
+}
