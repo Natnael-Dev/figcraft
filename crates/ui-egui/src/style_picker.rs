@@ -466,7 +466,8 @@ fn style_grid(ui: &mut Ui, list: &[(&Style, Key)], applied: Option<&Key>, editab
                 match text_def(s) {
                     Some(def) => {
                         let default_fill = if t.dark { Color32::from_white_alpha(14) } else { t.field };
-                        let fill = if resp.hovered() { t.menu_hover } else { default_fill };
+                        let hover_fill = if t.dark { t.menu_hover } else { t.pressed };
+                        let fill = if resp.hovered() { hover_fill } else { default_fill };
                         ui.painter().rect_filled(r, CornerRadius::same(5), fill);
                         let sample_w = ui.painter().layout_no_wrap("Ag".into(), regular(18.0), t.menu_text).size().x;
                         text_sample(
